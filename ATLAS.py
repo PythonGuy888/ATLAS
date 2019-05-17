@@ -145,13 +145,13 @@ def config():
                 else:
                     pass
 
-def changebg(path):                                                                 '''Changes background when /path/ is given'''
+def changebg(path):                                                                 #Changes background when /path/ is given
     import ctypes
     ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)                      # Don't ask me how this works. it just does.
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def brightness(percent):                                                            '''Changes brightness with cmd.'''
+def brightness(percent):                                                            #Changes brightness with cmd.
     import subprocess                           
     import os                                   
 
@@ -176,7 +176,7 @@ def hibernate():
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def theme(theme):                                                                   '''Changes 'themes' according to time or mood. idk. use it as you wish ;]'''
+def theme(theme):                                                                   #Changes 'themes' according to time or mood. idk. use it as you wish ;]
     
     qwe=os.getcwd()                                                                 # Get and store the current directory. This will be important later on.
     
@@ -265,7 +265,7 @@ jokes = ['how did the skeleton know it was going to rain. he felt it in his bone
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def speak(words):                                                                   '''Here's how this code speaks. This makes it stand out from the others.'''
+def speak(words):                                                                   #Here's how this code speaks. This makes it stand out from the others.
 
     a = open("speech.vbs", 'w')                                                     # Open the speech VBS file. (It's a nice coding language to learn, VBS is.)
     stuff='Dim sapi\nSet sapi=CreateObject("sapi.spvoice")\nsapi.Speak "'+words+'"' # Set up the file.
@@ -278,7 +278,7 @@ def speak(words):                                                               
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def recall_commands(command, s=True):                                               '''This is what makes this code remember stuff.'''
+def recall_commands(command, s=True):                                               #This is what makes this code remember stuff.
     
     cmd = shelve.open("command_data")                                               # Get the command list directory (yes, it's a dir and not a list, but I'm too lazy to change it)
     commands = cmd["cmd"]                                                           # Store it as a variable.
@@ -362,7 +362,7 @@ abc={'tell me a joke':joke,                                                     
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def createlib(name='cmd', List=abc):                                                '''@Sets up bot commands via defined dictionary.@'''
+def createlib(name='cmd', List=abc):                                                #@Sets up bot commands via defined dictionary.@
     
     cmd = shelve.open("command_data")                                               # Create shelve file
     cmd[name] = List                                                                # Make the data.
@@ -371,7 +371,7 @@ def createlib(name='cmd', List=abc):                                            
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-class update:                                                                       '''Class of my signature update module.'''
+class update:                                                                       #Class of my signature update module.
     
     def define(funcname):                                                           #Define the defining of a definition ... @-@
         asd = open('data.pydata', 'w')                                              # Open a datafile that can't be read by normal users, then make it empty.
@@ -497,27 +497,26 @@ class update:                                                                   
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def editor(): #Creates update file
-    name = input("Function name (will be added)> ") # Get the new function's name
+def editor():                                                                       #Creates update file
+    name = input("Function name (will be added)> ")                                 # Get the new function's name
 
-    update.define(name) # Create the definition.
+    update.define(name)                                                             # Create the definition.
 
-    while 1: # while True loop so that multiple lines of code can be added
+    while 1:                                                                        # while True loop so that multiple lines of code can be added
 
-        text = input("EDIT (e to exit) > ") # Input the new commands
+        text = input("EDIT (e to exit) > ")                                         # Input the new commands
 
-        if text == 'e': # If the command is 'e', then exit the editor
+        if text == 'e':                                                             # If the command is 'e', then exit the editor
             break
 
-        if text != 'e': # Otherwise, add the command(s) onto a new line.
-            update.newline(text) # This does it.
+        if text != 'e':                                                             # Otherwise, add the command(s) onto a new line.
+            update.newline(text)                                                    # This does it.
 
-    update.ready('yes') # Once finished, initiate the update.
+    update.ready('yes')                                                             # Once finished, initiate the update.
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
 def close():
-    import shelve # Get shelve
 
     data=shelve.open('command_data') # Get the data up
     data['startupcond'] = 1 # Set start condition to casual
@@ -884,12 +883,12 @@ def writePID():
 def startResponse():
     data=shelve.open('command_data')
 
-    if data['manual'] == True:
+    if data['manual'] == 'True':
         skip = 1
         
-    elif data['manual'] == False:
+    elif data['manual'] == 'False':
         skip = 0
-
+        
     start = data["startupcond"]
     muted=data['muted']
     
@@ -953,3 +952,5 @@ def startup():
         
     if start == 3:
         Muted("Waiting for alarm to end")
+
+startup()
