@@ -881,8 +881,11 @@ def writePID():
     asd.close()
 
 def startResponse():
+    skip = 0
     data=shelve.open('command_data')
-
+    
+    global skip
+    
     if data['manual'] == 'True':
         skip = 1
         
