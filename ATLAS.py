@@ -6,6 +6,9 @@ import time
 import sys
 import subprocess
 
+def howami():
+    speak("I'm doing just fine, thanks.")
+
 def createtopic():
     data=shelve.open('command_data')
     
@@ -57,24 +60,34 @@ def createevent():
     print(data[decision])
     data.close()
 
+    writePID()
+
 def cls():
     for x in range(200):
         print('\n')
 
+global updated
+updated = False
+
 def config():
     import sys
     import subprocess
+    preferred=input("What % of brightness do you prefer? > ")
     while 1:
         for x in range(200):
             print('\n')
-        preferred=input("What % of brightness do you prefer? > ")
         brightness(preferred)
         r = subprocess.run('py --version', stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
         pyver=r.stdout.decode()
         print("[1] Brightness: " + preferred + '%')
-        if Shell == 1:
+        Shell = startResponse()[2]
+        start = startResponse()[0]
+        print(str(Shell))
+        print(str(start))
+        toType = ''
+        if Shell == 1 and start == 1:
             toType='Normal [VoiceRec off]'
-        elif Shell == 0:
+        elif Shell == 0 and start == 1:
             toType='Normal [VoiceRec on]'
         elif start == 2 and Shell == 0:
             toType='Recently Updated [VoiceRec on]'
@@ -90,7 +103,7 @@ def config():
         print("---------------------------------------------")
         import shelve
         data=shelve.open('command_data')
-        a=input("Change categories ('e' to exit, 1 for brightness and 2 for startup) \n> ")
+        a=input("Change categories \n[E] Exit to Prompt\n[1] Brightness\n[2] Startup\n[3] Google-ing commands \n> ")
         if a.lower() == 'e':
             break
         elif a == '1':
@@ -108,26 +121,31 @@ def config():
             for x in range(200):
                 print('\n')
         elif a == '2':
+            data=shelve.open('command_data')
             for x in range(200):
                 print('\n')
             while 1:
                 print("Would you like to enable text prompt\ninstead of voice prompt?")
                 voice=input("[Y/N] > ")
                 if voice.lower() == 'y' or voice.lower()=='ye' or voice.lower == 'yes':
-                    data['manual'] = True
+                    new = 'True'
+                    data['manual'] = new
                     val=1
                 else:
+                    new = 'False'
                     val=0
-                    pass
+                    data['manual'] = new
                 print("Which startup condition would you like?\n[1]    Normal\n[2]    Recently updated")
                 while True:
                     a=input("Choice: ")
                     if a == '1':
-                        data['startupcond'] = 1
+                        new = 1
+                        data['startupcond'] = new
                         c='Normal'
                         break
                     elif a == '2':
-                        data['startupcond'] = 2
+                        new = 2
+                        data['startupcond'] = new
                         c='Recently Updated'
                         break
                     else:
@@ -141,9 +159,81 @@ def config():
                 print("Startup Mode: " + c)
                 conf=input("--------------------------------------------------\nCONFIRMATION [Y/N] > ")
                 if conf.lower() == 'y' or conf.lower() == 'ye' or conf.lower() == 'yes':
+                    data.close()
+                    global updated
+                    updated = True
                     break
                 else:
                     pass
+        elif a == '3':
+            data=shelve.open('command_data')
+            randomCounter = 1
+            for x in range(200):
+                print("\n")
+            print("Google Related Options:\n\n[1] Change phrase asked when input is too long\n[2] Add a phrase to choose from")
+            googleSet = input("[Choice]> ")
+            if googleSet == '1':
+                data=shelve.open('command_data')
+                a=data['googlecmds']
+                for phrase in a:
+                    print("["+str(randomCounter)+"] "+phrase)
+                    randomCounter += 1
+                while 1:
+                    new=input("Select phrase [enter number]> ")
+                    if new.lower() == 'e':
+                        break
+                    try:
+                        new=int(new)
+                        try:
+                            new-=1
+                            chosen=a[new]
+                            print(chosen)
+                            confirm = input("Is this correct? [Y/N]> ")
+                            confirm = confirm.lower()
+                            if confirm == 'y' or confirm == 'ye' or confirm == 'yes':
+                                data['prefgmessage'] = chosen
+                                data.close()
+                                break
+                            elif confirm == 'e':
+                                break
+                            else:
+                                pass
+                        except:
+                            print("Please choose a number listed on the left hand side.")
+                    except:
+                        print("Please use an integer (whole number)")
+            elif googleSet == '2':
+                data=shelve.open('command_data')
+                block=0
+                a=data['googlecmds']
+                b=str(a)
+                while 1:
+                    b=str(a)
+                    print("Used phrases:\n" + b)
+                    new = input("Phrase to add? [e to exit]> ")
+                    New = new.lower()
+                    if New == 'e' or New == 'ex' or New == 'exi' or New == 'exit':
+                        break
+                    for item in a:
+                        if new == item:
+                            block=1
+                        else:
+                            pass
+                    print("Add phrase: '" + new + "' ?")
+                    add=input("[Y/N/E] > ")
+                    add = add.lower()
+                    if add == 'y' or add == 'ye' or add == 'yes':
+                        if block == 1:
+                            print("Sorry, this one is already on the list.")
+                        else:
+                            print("Consider it done... because it is.")
+                            a.append(new)
+                    elif add == 'n' or add == 'no':
+                        print("Ok . _ .")
+                    elif add == 'e' or add == 'ex' or add == 'exi' or add == 'exit':
+                        break
+                data['googlecmds'] = a
+                data.close()
 
 def changebg(path):                                                                 #Changes background when /path/ is given
     import ctypes
@@ -358,16 +448,23 @@ abc={'tell me a joke':joke,                                                     
      'open my gmail':mail,
      'YouTube':yt,
      'open YouTube':yt,
-     'start YouTube':yt}
+     'start YouTube':yt,
+     'howami':howami}
+
+cba=['how are you', 'how are you doing', 'how you doing']
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
-def createlib(name='cmd', List=abc):                                                #@Sets up bot commands via defined dictionary.@
+def createlib(name='cmd', List=abc, howami=cba):                                    #@Sets up bot commands via defined dictionary.@
     
     cmd = shelve.open("command_data")                                               # Create shelve file
     cmd[name] = List                                                                # Make the data.
     cmd["startupcond"] = 0               
     cmd['muted'] = 0
+    cmd['prefgmessage']=''
+    cmd['googlecmds']=[]
+    cdm['howami']=cba
+    cmd.close()
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
@@ -518,8 +615,12 @@ def editor():                                                                   
 
 def close():
 
-    data=shelve.open('command_data') # Get the data up
-    data['startupcond'] = 1 # Set start condition to casual
+    data=shelve.open('command_data')
+
+    if updated == False:
+        data['startupcond'] = 1
+    else:
+        pass
 
     exit() # Exit.
 
@@ -531,24 +632,51 @@ def say():
 
 '''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
 
+def noResponse():
+    Say=['ok, got it.', 'alrighty then', 'ok then', 'maybe next time?', 'hmmmm. oh?-kay!', "let's move on, then!", "there's always a next time!", 'very well then!']
+    import random
+    toSay = random.choice(Say)
+    return toSay
+
+def yesResponse():
+    Say=['on it!', 'acknowledged', 'consider it done', 'ok']
+    import random
+    toSay = random.choice(Say)
+    return toSay
+
+'''/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'''
+
 def init(shell):
-    import speech_recognition as sr
+    try:
+        import speech_recognition as sr
+    except ImportError:
+        speak("PyAudio or voice recognition is still broken")
+        shell = 1
 
     global Shell
     Shell=shell
+    print(Shell)
     
     speak(smsg)
     time.sleep(6)
 
+    questions = shelve.open('command_data')['howami']
+    
     if shell != 1:
-        mic = sr.Microphone()
-        r = sr.Recognizer()
-        print("SPEAK")
+        try:
+            mic = sr.Microphone()
+            r = sr.Recognizer()
+            print("SPEAK")
+        except:
+            speak("It seems that py-audio is broken. Sorry for the inconvenience, but I'll enable text commands")
+            shell = 1
 
     asdf = 0
-
+    chars=0
+    
     while True:
         try:
+            chars=0
             if shell != 1:
                 with mic as source:
                     audio = r.listen(source)
@@ -559,99 +687,54 @@ def init(shell):
             elif shell == 1:
                 inp=input("PROMPT > ")
 
-
-                
+            for x in inp:
+                chars += 1
+            if inp in questions:
+                inp = 'howami'
             try:
                 recall_commands(inp)
                 continue
             
             except Exception as e:
-                print(str(e))
-                speak("Sorry, I don't know that one. Add to library?")
-                
-                time.sleep(4)
-                print("ADD?")
+                if chars > 8:
+                    data=shelve.open('command_data')
+                    ask = data['googlecmds']
+                    msg = 0
+                    countOff = 0
+                    total = 0
+                    for item in ask:
+                        if countOff == 1:
+                            countOff = 0
+                        elif countOff == 0:
+                            msg += 1
+                        total += 1
 
+                    import random
+                    from random import randint
 
-                
-                if shell != 1:
-                    with mic as source:
-                        audio = r.listen(source)
+                    whatShallIAsk = random.randint(0, total)
+                    if whatShallIAsk <= msg:
+                        ask = data['prefgmessage']
+                    else:
+                        ask = ask[whatShallIAsk]
                         
-                    decision = r.recognize_google(audio)
-
-
-                    
-                elif shell == 1:
-                    decision=input("[Y/N] ")
-                    decision=decision.lower()
-
-
-                    
-                if decision == 'yes' or decision=='ye' or decision == 'y':
-                    if shell != 1:
-                        speak("Say the name of the trigger.")
+                    speak(ask)
+                    doGoogle=input("Should I Google it? [Y/N] > ")
+                    doGoogle = doGoogle.lower()
+                    if doGoogle == 'y' or doGoogle == 'ye' or doGoogle == 'yes':
+                        import webbrowser
+                        webbrowser.open(inp)
+                        toSay=yesResponse()
+                        speak(toSay)
+                    else:
+                        cancel = 0
+                        googleFail = True
                         
-                        time.sleep(1.5)
-                        print("Now.")
+                        print(str(e))
+                        speak("In that case, would you like to add to library?")
                         
-                        with mic as source:
-                            audio = r.listen(source)
-                            
-                        name = r.recognize_google(audio)
-
-
-                        
-                    elif shell == 1:
-                        speak("Type the name of the trigger.")
-                        name=input("Trigger name > ")
-
-
-                        
-                    data = shelve.open("command_data")
-                    asd = data["cmd"]
-                    print(asd)
-
-
-                    
-                    if shell != 1:
-                        speak("now say the name of the function")
-                        time.sleep(2)
-                        print("now (say manual for manual input)")
-                        
-                        with mic as source:
-                            audio = r.listen(source)
-                            
-                        func = r.recognize_google(audio)
-                        
-                        if func == 'manual':
-                            func=input("Function name > ")
-
-
-                            
-                    elif shell == 1:
-                        speak("now type the name of the function")
-                        func=input("Function name > ")
-
-
-                        
-                    try:
-                        ok = {name:eval(func)}
-                        asd.update(ok)
-                        
-                        print(asd)
-                        
-                        data["cmd"] = asd
-                        data.close()
-                        
-                        speak("Thank you for helping me understand")
-                        continue
-                    
-                    except NameError:
-                        speak("the function you are trying to give me is undefined. open editor?")
-                        time.sleep(7)
-                        
-                        print("open?")
+                        time.sleep(4)
+                        print("ADD?")
 
 
                         
@@ -659,27 +742,257 @@ def init(shell):
                             with mic as source:
                                 audio = r.listen(source)
                                 
-                            yn = r.recognize_google(audio)
+                            decision = r.recognize_google(audio)
+
+
                             
                         elif shell == 1:
-                            yn=input("[Y/N] ")
-                            yn=yn.lower()
+                            decision=input("[Y/N] ")
+                            decision=decision.lower()
 
 
                             
-                        if yn == 'yes' or yn == 'y' or yn == 'ye':
-                            editor()
+                        if decision == 'yes' or decision=='ye' or decision == 'y':
+                            if shell != 1:
+                                speak("Say the name of the trigger.")
+                                
+                                time.sleep(1.5)
+                                print("Now. (Say 'cancel' to cancel, or 'manual' for manual input)")
+                                
+                                with mic as source:
+                                    audio = r.listen(source)
+                                    
+                                name = r.recognize_google(audio)
+
+                                if name == 'manual':
+                                    name=input("Trigger name ('cancel' to cancel) > ")
+                                    if name == 'cancel':
+                                        cancel = 1
+
+                                
+                            elif shell == 1:
+                                speak("Type the name of the trigger.")
+                                name=input("Trigger name ('cancel' to cancel) > ")
+                                if name == 'cancel':
+                                    cancel = 1
+
+
+                            if cancel == 0:  
+                                data = shelve.open("command_data")
+                                asd = data["cmd"]
+                                print(asd)
+
+
                             
-                        elif yn == 'no' or yn == 'n':
-                            speak("ok.")
+                            if shell != 1 and cancel == 0:
+                                speak("now say the name of the function")
+                                time.sleep(2)
+                                print("Now (say manual for manual input, or cancel to cancel)")
+                                
+                                with mic as source:
+                                    audio = r.listen(source)
+                                    
+                                func = r.recognize_google(audio)
+                                
+                                if func == 'manual':
+                                    func=input("Function name > ")
+                                    if func == 'cancel':
+                                        cancel = 1
+                                elif func == 'cancel':
+                                    cancel = 1
+
+
+                                    
+                            elif shell == 1 and cancel == 0:
+                                speak("now type the name of the function")
+                                func=input("Function name ('cancel' to cancel) > ")
+
+
+                                
+                            try:
+                                if cancel == 0:
+                                    ok = {name:eval(func)}
+                                    asd.update(ok)
+                                    
+                                    print(asd)
+                                    
+                                    data["cmd"] = asd
+                                    data.close()
+                                    
+                                    speak("Thank you for helping me understand")
+                                    continue
+                            
+                            except NameError:
+                                speak("the function you are trying to give me is undefined. open editor?")
+                                time.sleep(7)
+                                
+                                print("open?")
+
+
+                                
+                                if shell != 1:
+                                    with mic as source:
+                                        audio = r.listen(source)
+                                        
+                                    yn = r.recognize_google(audio)
+                                    
+                                elif shell == 1:
+                                    yn=input("[Y/N] ")
+                                    yn=yn.lower()
+
+
+                                    
+                                if yn == 'yes' or yn == 'y' or yn == 'ye':
+                                    toSay=yesResponse()
+                                    speak(toSay)
+                                    editor()
+                                    
+                                elif yn == 'no' or yn == 'n':
+                                    speak(noResponse())
+                                    continue
+
+
+                                
+                        elif decision == 'no' or decision == 'n':
+                            speak(noResponse())
+                            time.sleep(1.5)
                             continue
+
+                else:
+                    print(str(e))
+                    cancel = 0
+                    speak("Sorry, I don't know that one. Add to library?")
+                    
+                    time.sleep(4)
+                    print("ADD?")
+
+
+                    
+                    if shell != 1:
+                        with mic as source:
+                            audio = r.listen(source)
+                            
+                        decision = r.recognize_google(audio)
 
 
                         
-                elif decision == 'no' or decision == 'n':
-                    speak("ok, got it")
-                    time.sleep(1.5)
-                    continue
+                    elif shell == 1:
+                        decision=input("[Y/N] ")
+                        decision=decision.lower()
+
+
+                        
+                    if decision == 'yes' or decision=='ye' or decision == 'y':
+                        if shell != 1:
+                            speak("Say the name of the trigger.")
+                            
+                            time.sleep(1.5)
+                            print("Now. (Say 'cancel' to cancel, or 'manual' for manual input)")
+                            
+                            with mic as source:
+                                audio = r.listen(source)
+                                
+                            name = r.recognize_google(audio)
+                            if name == 'manual':
+                                name=input("Trigger name ('cancel' to cancel) > ")
+                                if name == 'cancel':
+                                    cancel = 1
+
+
+                            
+                        elif shell == 1:
+                            speak("Type the name of the trigger.")
+                            name=input("Trigger name ('cancel' to cancel) > ")
+                            if name == 'cancel':
+                                cancel = 1
+
+
+                        if cancel == 0:
+                            data = shelve.open("command_data")
+                            asd = data["cmd"]
+                            print(asd)
+
+
+                        
+                        if shell != 1 and cancel == 0:
+                            speak("now say the name of the function")
+                            time.sleep(2)
+                            print("now (say manual for manual input, or cancel to cancel.)")
+                            
+                            with mic as source:
+                                audio = r.listen(source)
+                                
+                            func = r.recognize_google(audio)
+                            
+                            if func == 'manual':
+                                func=input("Function name > ")
+                            elif func == 'cancel':
+                                speak("cancelled.")
+                                cancel=1
+                                
+
+
+                                
+                        elif shell == 1 and cancel == 0:
+                            speak("now type the name of the function")
+                            func=input("Function name > ")
+                            if func == 'cancel':
+                                speak("cancelled.")
+                                cancel=1
+
+
+                            
+                        try:
+                            if cancel == 0:
+                                ok = {name:eval(func)}
+                                asd.update(ok)
+                                
+                                print(asd)
+                                
+                                data["cmd"] = asd
+                                data.close()
+                                
+                                speak("Thank you for helping me understand")
+                                continue
+                        
+                        except NameError:
+                            if cancel == 0:
+                                speak("the function you are trying to give me is undefined. open editor?")
+                                time.sleep(7)
+                                
+                                print("open?")
+
+
+                                
+                                if shell != 1:
+                                    with mic as source:
+                                        audio = r.listen(source)
+                                        
+                                    yn = r.recognize_google(audio)
+                                    
+                                elif shell == 1:
+                                    yn=input("[Y/N] ")
+                                    yn=yn.lower()
+
+
+                                    
+                                if yn == 'yes' or yn == 'y' or yn == 'ye':
+                                    toSay=yesResponse()
+                                    speak(toSay)
+                                    editor()
+                                    
+                                elif yn == 'no' or yn == 'n':
+                                    toSay=noResponse()
+                                    speak(toSay)
+                                    continue
+
+
+                                
+                    elif decision == 'no' or decision == 'n':
+                        toSay=noResponse()
+                        speak(toSay)
+                        time.sleep(1.5)
+                        continue
             
         except Exception as e:
             print("oops " +str(e))
@@ -846,7 +1159,7 @@ def viewcommands():
 def greeting():
     import random
     
-    a=['hello!', 'hi!', 'hello again!', 'nice to see you again!', 'welcome back', 'it\'s me again!']
+    a=['hello!', 'hi!', 'hello again!', 'nice to see you again!', 'welcome back', 'it\'s me again!', 'atlas running', 'atlas activated']
     asd=random.choice(a)
     
     return asd
@@ -855,7 +1168,7 @@ def Muted(message="Event active"):
 
     while True:
         time.sleep(0.1)
-        print(message + " [waiting for event deactivation.]", sep='', end='\r')
+#        print(message + " [waiting for event deactivation.]", sep='', end='\r')
         
         a=open("stillActive.pyhelp", 'r')
         b=a.read()
@@ -881,11 +1194,8 @@ def writePID():
     asd.close()
 
 def startResponse():
-    skip = 0
+    skip=0
     data=shelve.open('command_data')
-    
-    global skip
-    
     if data['manual'] == 'True':
         skip = 1
         
@@ -907,13 +1217,15 @@ def startResponse():
 
 def startup():
 
-    startData = startResponse()
-    start=startData[0]
-    muted=startData[1]
-    skip=startData[2]
+    #print(shell)
     
     try:
         recall_commands('mail', s=None)
+        startData = startResponse()
+        start=startData[0]
+        muted=startData[1]
+        skip=startData[2]
+        shell=skip
         
     except Exception as e:
         createlib()
